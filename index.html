@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>집하장 스마트 실시간 관리 시스템</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* 기본 레이아웃 및 스타일 (제공해주신 스타일 유지) */
+        body { font-family: 'Pretendard', -apple-system, sans-serif; padding: 10px; background: #f4f7f6; color: #333; margin: 0; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #28a745; padding-bottom: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        h2 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .btn-group { display: flex; gap: 5px; }
+        button { padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
+        .excel-btn { background: #1d6f42; color: white; }
+        .admin-auth-btn { background: #666; color: white; }
+        .save-btn { background: #28a745; color: white; width: 100%; font-size: 15px; margin-top: 5px; }
+        .stock-panel { background: #333; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .stock-item { background: #444; padding: 5px 10px; border-radius: 4px; border-left: 3px solid #28a745; font-size: 13px; }
+        .stock-item b { color: #5cb85c; }
+        .input-group { margin-bottom: 15px; display: flex; gap: 8px; flex-direction: column; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .input-row { display: flex; gap: 8px; }
+        .input-row > * { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: center; font-size: 13px; }
+        th { background: #f8f9fa; color: #666; }
+        .edit-btn { background: #ffc107; padding: 5px 8px; margin-right: 2px; border-radius: 4px; }
+        .del-btn { background: #dc3545; color: white; padding: 5px 8px; border-radius: 4px; }
+        @media screen and (max-width: 600px) {
+            .header h2 { font-size: 1rem; }
+            .input-row { flex-direction: column; }
+            .btn-group button { padding: 8px; font-size: 11px; }
+            td { padding: 10px 5px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>📦 자재 관리 시스템</h2>
+        <div class="btn-group">
+            <button class="excel-btn" onclick="downloadExcel()">엑셀저장</button>
+            <button id="adminBtn" class="admin-auth-btn" onclick="toggleAdmin()">관리자</button>
+        </div>
+    </div>
+
+    <div id="stockPanel" class="stock-panel"></div>
+    
+    <div class="input-group">
+        <div class="input-row">
+            <select id="location">
+                <option value="">-- 집하장 --</option>
+                <option value="용인집하장">용인집하장</option>
+                <option value="청라집하장">청라집하장</option>
+                <option value="송도집하장">송도집하장</option>
+                <option value="창원집하장">창원집하장</option>
+                <option value="송파집하장">송파집하장</option>
+                <option value="노원집하장">노원집하장</option>
+                <option value="강서집하장">강서집하장</option>
+                <option value="광주집하장">광주집하장</option>
+                <option value="전주집하장">전주집하장</option>
+                <option value="서대문집하장">서대문집하장</option>
+                <option value="대전(대덕)집하장">대전(대덕)집하장</option>
+                <option value="부산(기장)집하장">부산(기장)집하장</option>
+                <option value="부산(사상)집하장">부산(사상)집하장</option>
+                <option value="대구(달성)집하장">대구(달성)집하장</option>
+                <option value="대구(북구)집하장">대구(북구)집하장</option>
+                <option value="울산(온산)집하장">울산(온산)집하장</option>
+                <option value="울산(울주)집하장">울산(울주)집하장</option>
+            </select>
+            <input type="text" id="itemName" placeholder="자재명 (고철 등)">
+        </div>
+        <div class="input-row">
+            <select id="type"><option value="입고">📥 입고</option><option value="출고">📤 출고</option></select>
+            <input type="number" id="amount" placeholder="수량">
+        </div>
+        <button class="save-btn" onclick="addItem()">기록 저장하기</button>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+        <select id="viewFilter" onchange="loadData()" style="padding:8px; border-radius:6px; border:1px solid #28a745; font-weight:bold;">
+            <option value="전체">전체 보기</option>
+            <option value="용인집하장">용인집하장</option>
+                <option value="청라집하장">청라집하장</option>
+                <option value="송도집하장">송도집하장</option>
+                <option value="창원집하장">창원집하장</option>
+                <option value="송파집하장">송파집하장</option>
+                <option value="노원집하장">노원집하장</option>
+                <option value="강서집하장">강서집하장</option>
+                <option value="광주집하장">광주집하장</option>
+                <option value="전주집하장">전주집하장</option>
+                <option value="서대문집하장">서대문집하장</option>
+                <option value="대전(대덕)집하장">대전(대덕)집하장</option>
+                <option value="부산(기장)집하장">부산(기장)집하장</option>
+                <option value="부산(사상)집하장">부산(사상)집하장</option>
+                <option value="대구(달성)집하장">대구(달성)집하장</option>
+                <option value="대구(북구)집하장">대구(북구)집하장</option>
+                <option value="울산(온산)집하장">울산(온산)집하장</option>
+                <option value="울산(울주)집하장">울산(울주)집하장</option>
+        </select>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>날짜/시간</th>
+                    <th>집하장</th>
+                    <th>자재</th>
+                    <th>구분</th>
+                    <th>수량</th>
+                    <th id="adminHeader" style="display:none;">관리</th>
+                </tr>
+            </thead>
+            <tbody id="logTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Firebase 정보
+    const firebaseConfig = {
+        apiKey: "AIzaSyATmK6cTrla_-W1_PQueX0ItsVNqaADcB4",
+        authDomain: "logis-materials.firebaseapp.com",
+        projectId: "logis-materials",
+        storageBucket: "logis-materials.firebasestorage.app",
+        messagingSenderId: "659994464620",
+        appId: "1:659994464620:web:c7a90dc68706b557ed6349"
+    };
+
+    // Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let isAdmin = false;
+    const ADMIN_PW = "1234";
+    let globalData = []; // 엑셀 다운로드용 데이터 저장
+
+    window.onload = function() { loadData(); };
+
+    // 데이터 실시간 불러오기
+    function loadData() {
+        const filterValue = document.getElementById('viewFilter').value;
+        let query = db.collection("materialLogs").orderBy("timestamp", "desc");
+
+        // 필터가 '전체'가 아니면 쿼리에 조건 추가
+        if (filterValue !== "전체") {
+            query = query.where("location", "==", filterValue);
+        }
+
+        query.onSnapshot((snapshot) => {
+            globalData = [];
+            snapshot.forEach((doc) => {
+                globalData.push({ id: doc.id, ...doc.data() });
+            });
+            renderTable(globalData);
+        });
+    }
+
+    // 기록 추가 (Firebase 저장)
+    function addItem() {
+        const location = document.getElementById('location').value;
+        const name = document.getElementById('itemName').value;
+        const type = document.getElementById('type').value;
+        const amount = document.getElementById('amount').value;
+
+        if(!location || !name || !amount) { alert("모든 항목을 입력하세요."); return; }
+
+        const now = new Date();
+        const dateString = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+        db.collection("materialLogs").add({
+            date: dateString,
+            location: location,
+            name: name,
+            type: type,
+            amount: parseInt(amount),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            document.getElementById('itemName').value = '';
+            document.getElementById('amount').value = '';
+        }).catch((error) => {
+            alert("저장 실패: " + error);
+        });
+    }
+
+    // 수정 기능 (Firebase 업데이트)
+    function editItem(id) {
+        if(!isAdmin) return;
+        const item = globalData.find(i => i.id === id);
+        if(item) {
+            const newName = prompt("수정할 자재명:", item.name);
+            const newAmount = prompt("수정할 수량:", item.amount);
+            if(newName && newAmount) {
+                db.collection("materialLogs").doc(id).update({
+                    name: newName,
+                    amount: parseInt(newAmount)
+                });
+            }
+        }
+    }
+
+    // 삭제 기능 (Firebase 삭제)
+    function deleteItem(id) {
+        if(!isAdmin) return;
+        if(confirm("삭제하시겠습니까?")) {
+            db.collection("materialLogs").doc(id).delete();
+        }
+    }
+
+    // 화면 그리기
+    function renderTable(data) {
+        const tableBody = document.getElementById('logTable');
+        const stockPanel = document.getElementById('stockPanel');
+        
+        document.getElementById('adminHeader').style.display = isAdmin ? 'table-cell' : 'none';
+
+        // 재고 계산
+        const summary = {};
+        data.forEach(i => {
+            summary[i.name] = (summary[i.name] || 0) + (i.type === "입고" ? i.amount : -i.amount);
+        });
+        
+        stockPanel.innerHTML = "";
+        Object.keys(summary).forEach(n => stockPanel.innerHTML += `<div class="stock-item">${n}: <b>${summary[n]}</b></div>`);
+        if(Object.keys(summary).length === 0) stockPanel.innerHTML = "<div style='font-size:12px;color:#888;'>데이터가 없습니다.</div>";
+
+        tableBody.innerHTML = "";
+        data.forEach(i => {
+            const row = tableBody.insertRow();
+            let actionButtons = isAdmin ? `<td><button class="edit-btn" onclick="editItem('${i.id}')">✎</button><button class="del-btn" onclick="deleteItem('${i.id}')">✘</button></td>` : "";
+            row.innerHTML = `<td>${i.date}</td><td>${i.location}</td><td><strong>${i.name}</strong></td><td style="color:${i.type==='출고'?'red':'blue'}">${i.type}</td><td>${i.amount.toLocaleString()}</td>${actionButtons}`;
+        });
+    }
+
+    function toggleAdmin() {
+        if (!isAdmin) {
+            if (prompt("관리자 비밀번호:") === ADMIN_PW) {
+                isAdmin = true;
+                document.getElementById('adminBtn').innerText = "로그아웃";
+                document.getElementById('adminBtn').style.background = "#28a745";
+            } else { alert("비밀번호 오류"); }
+        } else {
+            isAdmin = false;
+            document.getElementById('adminBtn').innerText = "관리자";
+            document.getElementById('adminBtn').style.background = "#666";
+        }
+        renderTable(globalData);
+    }
+
+    function downloadExcel() {
+        if (globalData.length === 0) { alert("저장할 데이터가 없습니다."); return; }
+        let csvContent = "\uFEFF날짜,집하장,자재명,구분,수량\n"; 
+        globalData.forEach(i => { csvContent += `${i.date},${i.location},${i.name},${i.type},${i.amount}\n`; });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `자재관리_${new Date().toLocaleDateString()}.csv`;
+        link.click();
+    }
+</script>
+</body>
+</html>
