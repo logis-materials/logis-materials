@@ -9,7 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* 기본 레이아웃 및 스타일 (제공해주신 스타일 유지) */
         body { font-family: 'Pretendard', -apple-system, sans-serif; padding: 10px; background: #f4f7f6; color: #333; margin: 0; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #28a745; padding-bottom: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
@@ -19,7 +18,7 @@
         .excel-btn { background: #1d6f42; color: white; }
         .admin-auth-btn { background: #666; color: white; }
         .save-btn { background: #28a745; color: white; width: 100%; font-size: 15px; margin-top: 5px; }
-        .stock-panel { background: #333; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .stock-panel { background: #333; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; align-items: center; }
         .stock-item { background: #444; padding: 5px 10px; border-radius: 4px; border-left: 3px solid #28a745; font-size: 13px; }
         .stock-item b { color: #5cb85c; }
         .input-group { margin-bottom: 15px; display: flex; gap: 8px; flex-direction: column; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
@@ -29,13 +28,13 @@
         table { width: 100%; border-collapse: collapse; min-width: 500px; }
         th, td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: center; font-size: 13px; }
         th { background: #f8f9fa; color: #666; }
+        .no-data { padding: 40px; color: #888; text-align: center; font-size: 14px; border-bottom: 1px solid #eee; }
         .edit-btn { background: #ffc107; padding: 5px 8px; margin-right: 2px; border-radius: 4px; }
         .del-btn { background: #dc3545; color: white; padding: 5px 8px; border-radius: 4px; }
         @media screen and (max-width: 600px) {
             .header h2 { font-size: 1rem; }
             .input-row { flex-direction: column; }
             .btn-group button { padding: 8px; font-size: 11px; }
-            td { padding: 10px 5px; font-size: 12px; }
         }
     </style>
 </head>
@@ -55,18 +54,20 @@
     <div class="input-group">
         <div class="input-row">
             <select id="location">
-                <option value="">-- 집하장 --</option>
-                <option value="용인집하장">용인집하장</option>
-                <option value="청라집하장">청라집하장</option>
-                <option value="송도집하장">송도집하장</option>
-                <option value="창원집하장">창원집하장</option>
-                <option value="송파집하장">송파집하장</option>
-                <option value="노원집하장">노원집하장</option>
-                <option value="강서집하장">강서집하장</option>
-                <option value="광주집하장">광주집하장</option>
-                <option value="전주집하장">전주집하장</option>
-                <option value="서대문집하장">서대문집하장</option>
+                <option value="">-- 집하장 선택 --</option>
+                <option value="경기(용인)집하장">경기(용인)집하장</option>
+                <option value="인천(청라)집하장">인천(청라)집하장</option>
+                <option value="인천(송도)집하장">인천(송도)집하장</option>
+                <option value="창원(진해)집하장">창원(진해)집하장</option>
+                <option value="창원(창원)집하장">창원(창원)집하장</option>
+                <option value="서울(송파)집하장">서울(송파)집하장</option>
+                <option value="서울(노원)집하장">서울(노원)집하장</option>
+                <option value="서울(강서)집하장">서울(강서)집하장</option>
+                <option value="서울(서대문)집하장">서울(서대문)집하장</option>
+                <option value="광주(광주)집하장">광주(광주)집하장</option>
+                <option value="전주(전주)집하장">전주(전주)집하장</option>
                 <option value="대전(대덕)집하장">대전(대덕)집하장</option>
+                <option value="대전(유성)집하장">대전(유성)집하장</option>
                 <option value="부산(기장)집하장">부산(기장)집하장</option>
                 <option value="부산(사상)집하장">부산(사상)집하장</option>
                 <option value="대구(달성)집하장">대구(달성)집하장</option>
@@ -74,7 +75,42 @@
                 <option value="울산(온산)집하장">울산(온산)집하장</option>
                 <option value="울산(울주)집하장">울산(울주)집하장</option>
             </select>
-            <input type="text" id="itemName" placeholder="자재명 (고철 등)">
+            
+            <select id="itemName">
+                <option value="">-- 자재 선택 --</option>
+                <option value="밴딩끈">밴딩끈</option>
+                <option value="스트레치필름(투명)">스트레치필름(투명)</option>
+                <option value="스트레치필름(수동)">스트레치필름(수동)</option>
+                <option value="철클립">철클립</option>
+                <option value="결속기">결속기</option>
+                <option value="조임기">조임기</option>
+                <option value="자동바">자동바</option>
+                <option value="가위">가위</option>
+                <option value="빗자루">빗자루</option>
+                <option value="쓰레받이">쓰레받이</option>
+                <option value="매직">매직</option>
+                <option value="망치">망치</option>
+                <option value="종이컵">종이컵</option>
+                <option value="휴지">휴지</option>
+                <option value="드라이버">드라이버</option>
+                <option value="장화">장화</option>
+                <option value="방진마스크">방진마스크</option>
+                <option value="소화기">소화기</option>
+                <option value="멀티탭">멀티탭</option>
+                <option value="도어락">도어락</option>
+                <option value="환풍기">환풍기</option>
+                <option value="라디에이터">라디에이터</option>
+                <option value="엔진오일">엔진오일</option>
+                <option value="부동액">부동액</option>
+                <option value="생수">생수</option>
+                <option value="수전밸브">수전밸브</option>
+                <option value="전선">전선</option>
+                <option value="전등">전등</option>
+                <option value="호스">호스</option>
+                <option value="릴선">릴선</option>
+                <option value="기름통">기름통</option>
+                <option value="염화칼슘">염화칼슘</option>
+            </select>
         </div>
         <div class="input-row">
             <select id="type"><option value="입고">📥 입고</option><option value="출고">📤 출고</option></select>
@@ -86,28 +122,30 @@
     <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
         <select id="viewFilter" onchange="loadData()" style="padding:8px; border-radius:6px; border:1px solid #28a745; font-weight:bold;">
             <option value="전체">전체 보기</option>
-            <option value="용인집하장">용인집하장</option>
-                <option value="청라집하장">청라집하장</option>
-                <option value="송도집하장">송도집하장</option>
-                <option value="창원집하장">창원집하장</option>
-                <option value="송파집하장">송파집하장</option>
-                <option value="노원집하장">노원집하장</option>
-                <option value="강서집하장">강서집하장</option>
-                <option value="광주집하장">광주집하장</option>
-                <option value="전주집하장">전주집하장</option>
-                <option value="서대문집하장">서대문집하장</option>
-                <option value="대전(대덕)집하장">대전(대덕)집하장</option>
-                <option value="부산(기장)집하장">부산(기장)집하장</option>
-                <option value="부산(사상)집하장">부산(사상)집하장</option>
-                <option value="대구(달성)집하장">대구(달성)집하장</option>
-                <option value="대구(북구)집하장">대구(북구)집하장</option>
-                <option value="울산(온산)집하장">울산(온산)집하장</option>
-                <option value="울산(울주)집하장">울산(울주)집하장</option>
+            <option value="경기(용인)집하장">경기(용인)집하장</option>
+            <option value="인천(청라)집하장">인천(청라)집하장</option>
+            <option value="인천(송도)집하장">인천(송도)집하장</option>
+            <option value="창원(진해)집하장">창원(진해)집하장</option>
+            <option value="창원(창원)집하장">창원(창원)집하장</option>
+            <option value="서울(송파)집하장">서울(송파)집하장</option>
+            <option value="서울(노원)집하장">서울(노원)집하장</option>
+            <option value="서울(강서)집하장">서울(강서)집하장</option>
+            <option value="서울(서대문)집하장">서울(서대문)집하장</option>
+            <option value="광주(광주)집하장">광주(광주)집하장</option>
+            <option value="전주(전주)집하장">전주(전주)집하장</option>
+            <option value="대전(대덕)집하장">대전(대덕)집하장</option>
+            <option value="대전(유성)집하장">대전(유성)집하장</option>
+            <option value="부산(기장)집하장">부산(기장)집하장</option>
+            <option value="부산(사상)집하장">부산(사상)집하장</option>
+            <option value="대구(달성)집하장">대구(달성)집하장</option>
+            <option value="대구(북구)집하장">대구(북구)집하장</option>
+            <option value="울산(온산)집하장">울산(온산)집하장</option>
+            <option value="울산(울주)집하장">울산(울주)집하장</option>
         </select>
     </div>
 
     <div class="table-wrapper">
-        <table>
+        <table id="mainTable">
             <thead>
                 <tr>
                     <th>날짜/시간</th>
@@ -120,11 +158,11 @@
             </thead>
             <tbody id="logTable"></tbody>
         </table>
+        <div id="emptyMsg" class="no-data" style="display:none;">해당 집하장의 데이터가 없습니다.</div>
     </div>
 </div>
 
 <script>
-    // Firebase 정보
     const firebaseConfig = {
         apiKey: "AIzaSyATmK6cTrla_-W1_PQueX0ItsVNqaADcB4",
         authDomain: "logis-materials.firebaseapp.com",
@@ -134,43 +172,63 @@
         appId: "1:659994464620:web:c7a90dc68706b557ed6349"
     };
 
-    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     let isAdmin = false;
     const ADMIN_PW = "1234";
-    let globalData = []; // 엑셀 다운로드용 데이터 저장
+    let globalData = [];
+    let unsubscribe = null;
 
     window.onload = function() { loadData(); };
 
-    // 데이터 실시간 불러오기
     function loadData() {
         const filterValue = document.getElementById('viewFilter').value;
+        const tableBody = document.getElementById('logTable');
+        const emptyMsg = document.getElementById('emptyMsg');
+        const mainTable = document.getElementById('mainTable');
+
+        if (unsubscribe) unsubscribe();
+
         let query = db.collection("materialLogs").orderBy("timestamp", "desc");
 
-        // 필터가 '전체'가 아니면 쿼리에 조건 추가
         if (filterValue !== "전체") {
             query = query.where("location", "==", filterValue);
         }
 
-        query.onSnapshot((snapshot) => {
+        unsubscribe = query.onSnapshot((snapshot) => {
             globalData = [];
-            snapshot.forEach((doc) => {
-                globalData.push({ id: doc.id, ...doc.data() });
-            });
-            renderTable(globalData);
+            tableBody.innerHTML = "";
+            
+            if (snapshot.empty) {
+                mainTable.style.display = "none";
+                emptyMsg.style.display = "block";
+                renderStockPanel([]); 
+            } else {
+                mainTable.style.display = "table";
+                emptyMsg.style.display = "none";
+                snapshot.forEach((doc) => {
+                    globalData.push({ id: doc.id, ...doc.data() });
+                });
+                renderTable(globalData);
+            }
+        }, (error) => {
+            console.error("데이터 로드 에러:", error);
+            // 에러가 나면 화면 초기화
+            tableBody.innerHTML = "";
+            mainTable.style.display = "none";
+            emptyMsg.innerHTML = "데이터를 불러오는 중 오류가 발생했습니다. (색인 설정 필요)";
+            emptyMsg.style.display = "block";
         });
     }
 
-    // 기록 추가 (Firebase 저장)
     function addItem() {
         const location = document.getElementById('location').value;
         const name = document.getElementById('itemName').value;
         const type = document.getElementById('type').value;
         const amount = document.getElementById('amount').value;
 
-        if(!location || !name || !amount) { alert("모든 항목을 입력하세요."); return; }
+        if(!location || !name || !amount) { alert("항목을 모두 선택하세요."); return; }
 
         const now = new Date();
         const dateString = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
@@ -183,60 +241,41 @@
             amount: parseInt(amount),
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
-            document.getElementById('itemName').value = '';
             document.getElementById('amount').value = '';
-        }).catch((error) => {
-            alert("저장 실패: " + error);
+            alert("저장되었습니다.");
         });
     }
 
-    // 수정 기능 (Firebase 업데이트)
-    function editItem(id) {
-        if(!isAdmin) return;
-        const item = globalData.find(i => i.id === id);
-        if(item) {
-            const newName = prompt("수정할 자재명:", item.name);
-            const newAmount = prompt("수정할 수량:", item.amount);
-            if(newName && newAmount) {
-                db.collection("materialLogs").doc(id).update({
-                    name: newName,
-                    amount: parseInt(newAmount)
-                });
-            }
-        }
-    }
-
-    // 삭제 기능 (Firebase 삭제)
-    function deleteItem(id) {
-        if(!isAdmin) return;
-        if(confirm("삭제하시겠습니까?")) {
-            db.collection("materialLogs").doc(id).delete();
-        }
-    }
-
-    // 화면 그리기
     function renderTable(data) {
         const tableBody = document.getElementById('logTable');
-        const stockPanel = document.getElementById('stockPanel');
-        
-        document.getElementById('adminHeader').style.display = isAdmin ? 'table-cell' : 'none';
-
-        // 재고 계산
-        const summary = {};
-        data.forEach(i => {
-            summary[i.name] = (summary[i.name] || 0) + (i.type === "입고" ? i.amount : -i.amount);
-        });
-        
-        stockPanel.innerHTML = "";
-        Object.keys(summary).forEach(n => stockPanel.innerHTML += `<div class="stock-item">${n}: <b>${summary[n]}</b></div>`);
-        if(Object.keys(summary).length === 0) stockPanel.innerHTML = "<div style='font-size:12px;color:#888;'>데이터가 없습니다.</div>";
-
         tableBody.innerHTML = "";
+
         data.forEach(i => {
             const row = tableBody.insertRow();
             let actionButtons = isAdmin ? `<td><button class="edit-btn" onclick="editItem('${i.id}')">✎</button><button class="del-btn" onclick="deleteItem('${i.id}')">✘</button></td>` : "";
             row.innerHTML = `<td>${i.date}</td><td>${i.location}</td><td><strong>${i.name}</strong></td><td style="color:${i.type==='출고'?'red':'blue'}">${i.type}</td><td>${i.amount.toLocaleString()}</td>${actionButtons}`;
         });
+
+        renderStockPanel(data);
+    }
+
+    function renderStockPanel(data) {
+        const stockPanel = document.getElementById('stockPanel');
+        const summary = {};
+        
+        data.forEach(i => {
+            summary[i.name] = (summary[i.name] || 0) + (i.type === "입고" ? i.amount : -i.amount);
+        });
+
+        stockPanel.innerHTML = "";
+        const keys = Object.keys(summary);
+        if(keys.length === 0) {
+            stockPanel.innerHTML = "<div style='font-size:12px;color:#888;padding-left:10px;'>재고 데이터 없음</div>";
+        } else {
+            keys.forEach(n => {
+                stockPanel.innerHTML += `<div class="stock-item">${n}: <b>${summary[n].toLocaleString()}</b></div>`;
+            });
+        }
     }
 
     function toggleAdmin() {
@@ -245,17 +284,36 @@
                 isAdmin = true;
                 document.getElementById('adminBtn').innerText = "로그아웃";
                 document.getElementById('adminBtn').style.background = "#28a745";
+                document.getElementById('adminHeader').style.display = 'table-cell';
             } else { alert("비밀번호 오류"); }
         } else {
             isAdmin = false;
             document.getElementById('adminBtn').innerText = "관리자";
             document.getElementById('adminBtn').style.background = "#666";
+            document.getElementById('adminHeader').style.display = 'none';
         }
         renderTable(globalData);
     }
 
+    function editItem(id) {
+        if(!isAdmin) return;
+        const item = globalData.find(i => i.id === id);
+        if(item) {
+            const newName = prompt("수정할 자재명:", item.name);
+            const newAmount = prompt("수정할 수량:", item.amount);
+            if(newName && newAmount) {
+                db.collection("materialLogs").doc(id).update({ name: newName, amount: parseInt(newAmount) });
+            }
+        }
+    }
+
+    function deleteItem(id) {
+        if(!isAdmin || !confirm("삭제하시겠습니까?")) return;
+        db.collection("materialLogs").doc(id).delete();
+    }
+
     function downloadExcel() {
-        if (globalData.length === 0) { alert("저장할 데이터가 없습니다."); return; }
+        if (globalData.length === 0) { alert("데이터가 없습니다."); return; }
         let csvContent = "\uFEFF날짜,집하장,자재명,구분,수량\n"; 
         globalData.forEach(i => { csvContent += `${i.date},${i.location},${i.name},${i.type},${i.amount}\n`; });
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
